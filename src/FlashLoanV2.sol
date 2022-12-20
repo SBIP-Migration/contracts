@@ -26,20 +26,13 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
     address tokenAddress;
   }
 
-  // struct MigrateAavePositionsParams {
-  //   address _sender;
-  //   address _recipient;
-  //   aTokenPosition[] _aTokenPositions;
-  //   DebtTokenPosition[] _debtTokenPositions;
-  // }
-
-
+  /*
+   * Transfer lending positions (ERC20 aToken) to recipient
+   */
   function transferLendingPositions(
     aTokenPosition[] memory aTokenPositions,
     address recipient
   ) internal {
-
-
     for (uint i = 0; i < aTokenPositions.length; i++) {
       IERC20(aTokenPositions[i].aTokenAddress).transfer(recipient, aTokenPositions[i].amount);
     }
@@ -49,36 +42,87 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
     DebtTokenPosition[] memory debtTokenPositions,
     address debtor
   ) internal {
-     for (uint i = 0; i < debtTokenPositions.length; i++) {
-          DebtTokenPosition memory debtPosition = debtTokenPositions[i];
-          if (debtPosition.stableDebtAmount != 0) {
-            IERC20(debtPosition.tokenAddress).approve(
-              address(LENDING_POOL), 
-              debtPosition.stableDebtAmount 
-            );
-            LENDING_POOL.repay(
-              debtPosition.tokenAddress, 
-              debtPosition.stableDebtAmount, 
-              // Stable Debt = 1
-              1, 
-              debtor
-            );
-          } 
-          
-          if (debtPosition.variableDebtAmount != 0) {
-            IERC20(debtPosition.tokenAddress).approve(
-              address(LENDING_POOL), 
-              debtPosition.variableDebtAmount
-            );
-            LENDING_POOL.repay(
-              debtPosition.tokenAddress, 
-              debtPosition.variableDebtAmount, 
-              // Variable Debt = 2
-              2, 
-              debtor
-            );
-          }
+    for (uint i = 0; i < debtTokenPositions.length; i++) {
+      DebtTokenPosition memory debtPosition = debtTokenPositions[i];
+      if (debtPosition.stableDebtAmount != 0) {
+        IERC20(debtPosition.tokenAddress).approve(
+          address(LENDING_POOL), 
+          debtPosition.stableDebtAmount 
+        );
+        LENDING_POOL.repay(
+          debtPosition.tokenAddress, 
+          debtPosition.stableDebtAmount, 
+          // Stable Debt = 1
+          1, 
+          debtor
+        );
+      } 
+      
+      if (debtPosition.variableDebtAmount != 0) {
+        IERC20(debtPosition.tokenAddress).approve(
+          address(LENDING_POOL), 
+          debtPosition.variableDebtAmount
+        );
+        LENDING_POOL.repay(
+          debtPosition.tokenAddress, 
+          debtPosition.variableDebtAmount, 
+          // Variable Debt = 2
+          2, 
+          debtor
+        );
+      }
+    }
+  }
+
+  function reborrowDebtPositions(
+    DebtTokenPosition[] memory debtTokenPositions,
+    uint256[] memory premiums,
+    address debtor
+  ) internal {
+    for (uint i = 0; i < debtTokenPositions.length; i++) {
+      DebtTokenPosition memory debtPosition = debtTokenPositions[i];
+      uint256 flPremium = premiums[i];
+
+      bool isPremiumIncluded = false;
+
+      if (debtPosition.stableDebtAmount != 0) {
+        IERC20(debtPosition.tokenAddress).approve(
+          address(LENDING_POOL), 
+          debtPosition.stableDebtAmount 
+        );
+        LENDING_POOL.borrow(
+          debtPosition.tokenAddress, 
+          debtPosition.stableDebtAmount + flPremium, 
+          // Stable Debt = 1
+          1,
+          // Default referral code 
+          0,
+          debtor
+        );
+        isPremiumIncluded = true;
+      }
+
+      if (debtPosition.variableDebtAmount != 0) {
+        IERC20(debtPosition.tokenAddress).approve(
+          address(LENDING_POOL), 
+          debtPosition.variableDebtAmount
+        );
+
+        uint256 borrowAmount = debtPosition.variableDebtAmount;
+        if (isPremiumIncluded == false) {
+          borrowAmount += flPremium;
         }
+
+        LENDING_POOL.borrow(
+          debtPosition.tokenAddress, 
+          borrowAmount, 
+          // Variable Debt = 2
+          2, 
+          0,
+          debtor
+        );
+      } 
+    }
   }
 
 
@@ -121,8 +165,8 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
         // 2. For all borrowed positions in Aave, pay debt with Lending Pool
         repayDebtPositions(_debtTokenPositions, _sender);
         
-        // 3. For all previously borrowed positions, reborrow them with new account
-
+        // 3. For all previously borrowed positions, reborrow them with new account with 0.09% premium
+        reborrowDebtPositions(_debtTokenPositions, premiums, _recipient);
 
 
         // At the end of your logic above, this contract owes
