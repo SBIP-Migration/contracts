@@ -47,6 +47,20 @@ library DataTypes {
   struct UserConfigurationMap {
     uint256 data;
   }
+
+  // Representation of Aave lending position
+  struct aTokenPosition {
+    uint256 amount;
+    address aTokenAddress;
+    address tokenAddress;
+  }
+
+  // Representation of Aave debt position
+  struct DebtTokenPosition {
+    uint256 stableDebtAmount;
+    uint256 variableDebtAmount;
+    address tokenAddress;
+  }
   
   enum InterestRateMode {NONE, STABLE, VARIABLE}
 }

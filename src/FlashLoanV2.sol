@@ -1,49 +1,44 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.1;
 
 import "./aave/FlashLoanReceiverBaseV2.sol";
 import "./interfaces/ILendingPoolV2.sol";
 import "./interfaces/ILendingPoolAddressesProviderV2.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { DataTypes } from "./libraries/DataTypes.sol";
+import { IDebtToken } from "./interfaces/IDebtToken.sol";
+import "forge-std/console.sol";
+
 
 contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable { 
   constructor(address _addressProvider) 
     FlashLoanReceiverBaseV2(_addressProvider)
   {}
 
-  // Representation of Aave lending position
-  struct aTokenPosition {
-    uint256 amount;
-    address aTokenAddress;
-    address tokenAddress;
+  function getContractAddress() public view returns (address) {
+    return address(this);
   }
 
-  // Representation of Aave debt position
-  struct DebtTokenPosition {
-    uint256 stableDebtAmount;
-    uint256 variableDebtAmount;
-    address tokenAddress;
-  }
 
   /*
    * Transfer lending positions (ERC20 aToken) to recipient
    */
   function transferLendingPositions(
-    aTokenPosition[] memory aTokenPositions,
+    DataTypes.aTokenPosition[] memory aTokenPositions,
+    address sender,
     address recipient
   ) internal {
     for (uint i = 0; i < aTokenPositions.length; i++) {
-      IERC20(aTokenPositions[i].aTokenAddress).transfer(recipient, aTokenPositions[i].amount);
+      bool success = IERC20(aTokenPositions[i].aTokenAddress).transferFrom(sender, recipient, aTokenPositions[i].amount);
     }
   }
 
   function repayDebtPositions(
-    DebtTokenPosition[] memory debtTokenPositions,
+    DataTypes.DebtTokenPosition[] memory debtTokenPositions,
     address debtor
   ) internal {
     for (uint i = 0; i < debtTokenPositions.length; i++) {
-      DebtTokenPosition memory debtPosition = debtTokenPositions[i];
+      DataTypes.DebtTokenPosition memory debtPosition = debtTokenPositions[i];
       if (debtPosition.stableDebtAmount != 0) {
         IERC20(debtPosition.tokenAddress).approve(
           address(LENDING_POOL), 
@@ -75,21 +70,16 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
   }
 
   function reborrowDebtPositions(
-    DebtTokenPosition[] memory debtTokenPositions,
+    DataTypes.DebtTokenPosition[] memory debtTokenPositions,
     uint256[] memory premiums,
-    address debtor
+    address recipient
   ) internal {
     for (uint i = 0; i < debtTokenPositions.length; i++) {
-      DebtTokenPosition memory debtPosition = debtTokenPositions[i];
+      DataTypes.DebtTokenPosition memory debtPosition = debtTokenPositions[i];
       uint256 flPremium = premiums[i];
 
       bool isPremiumIncluded = false;
-
       if (debtPosition.stableDebtAmount != 0) {
-        IERC20(debtPosition.tokenAddress).approve(
-          address(LENDING_POOL), 
-          debtPosition.stableDebtAmount 
-        );
         LENDING_POOL.borrow(
           debtPosition.tokenAddress, 
           debtPosition.stableDebtAmount + flPremium, 
@@ -97,29 +87,23 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
           1,
           // Default referral code 
           0,
-          debtor
+          recipient
         );
         isPremiumIncluded = true;
       }
-
       if (debtPosition.variableDebtAmount != 0) {
-        IERC20(debtPosition.tokenAddress).approve(
-          address(LENDING_POOL), 
-          debtPosition.variableDebtAmount
-        );
-
         uint256 borrowAmount = debtPosition.variableDebtAmount;
         if (isPremiumIncluded == false) {
           borrowAmount += flPremium;
         }
-
+  
         LENDING_POOL.borrow(
           debtPosition.tokenAddress, 
           borrowAmount, 
           // Variable Debt = 2
           2, 
-          0,
-          debtor
+          0, 
+          recipient
         );
       } 
     }
@@ -151,23 +135,21 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
         // 1. Transfer aTokenBalances to receiver
         // 2. For all assets, pay all debt
         // 3. For all assets, reborrow them in new account (with 0.09% premiums)
-
         (
           address _sender, 
           address _recipient,
-          aTokenPosition[] memory _aTokenPositions, 
-          DebtTokenPosition[] memory _debtTokenPositions 
-        ) = abi.decode(params, (address, address, aTokenPosition[],  DebtTokenPosition[]));
+          DataTypes.aTokenPosition[] memory _aTokenPositions, 
+          DataTypes.DebtTokenPosition[] memory _debtTokenPositions 
+        ) = abi.decode(params, (address, address, DataTypes.aTokenPosition[],  DataTypes.DebtTokenPosition[]));
         
         // 1. Transfer lending positions to recipient
-        transferLendingPositions(_aTokenPositions, _recipient);
+        transferLendingPositions(_aTokenPositions, _sender, _recipient);
 
         // 2. For all borrowed positions in Aave, pay debt with Lending Pool
         repayDebtPositions(_debtTokenPositions, _sender);
-        
+
         // 3. For all previously borrowed positions, reborrow them with new account with 0.09% premium
         reborrowDebtPositions(_debtTokenPositions, premiums, _recipient);
-
 
         // At the end of your logic above, this contract owes
         // the flashloaned amounts + premiums.
@@ -214,8 +196,8 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
     */
     function migrateAavePositions(
       address _recipientAddress,
-      DebtTokenPosition[] calldata _debtTokenPositions,
-      aTokenPosition[] calldata _aTokenPositions
+      DataTypes.DebtTokenPosition[] memory _debtTokenPositions,
+      DataTypes.aTokenPosition[] memory _aTokenPositions
     ) external {
       uint256 numDebtTokenPositions = _debtTokenPositions.length;
 
@@ -227,7 +209,6 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
         assets[i] = _debtTokenPositions[i].tokenAddress;
         amounts[i] = _debtTokenPositions[i].stableDebtAmount + _debtTokenPositions[i].variableDebtAmount;
       }  
-
       bytes memory params = abi.encode(msg.sender, _recipientAddress, _aTokenPositions, _debtTokenPositions);
 
       _flashloan(assets, amounts, params);
