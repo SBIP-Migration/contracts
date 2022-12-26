@@ -29,7 +29,7 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
     address recipient
   ) internal {
     for (uint i = 0; i < aTokenPositions.length; i++) {
-      bool success = IERC20(aTokenPositions[i].aTokenAddress).transferFrom(sender, recipient, aTokenPositions[i].amount);
+      IERC20(aTokenPositions[i].aTokenAddress).transferFrom(sender, recipient, aTokenPositions[i].amount);
     }
   }
 
@@ -109,6 +109,16 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
     }
   }
 
+  function approveLendingPool(
+      address[] calldata assets,     
+      uint256[] calldata amounts,
+      uint256[] calldata premiums
+    ) internal {
+    for (uint256 i = 0; i < assets.length; i++) {
+      uint256 amountOwing = amounts[i] + premiums[i];
+      IERC20(assets[i]).approve(address(LENDING_POOL), amountOwing);
+    }
+  }
 
   /**
      * @dev This function must be called only be the LENDING_POOL and takes care of repaying
@@ -132,9 +142,6 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
         // Your logic goes here.
         //
 
-        // 1. Transfer aTokenBalances to receiver
-        // 2. For all assets, pay all debt
-        // 3. For all assets, reborrow them in new account (with 0.09% premiums)
         (
           address _sender, 
           address _recipient,
@@ -142,11 +149,11 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
           DataTypes.DebtTokenPosition[] memory _debtTokenPositions 
         ) = abi.decode(params, (address, address, DataTypes.aTokenPosition[],  DataTypes.DebtTokenPosition[]));
         
-        // 1. Transfer lending positions to recipient
-        transferLendingPositions(_aTokenPositions, _sender, _recipient);
-
-        // 2. For all borrowed positions in Aave, pay debt with Lending Pool
+        // 1. For all borrowed positions in Aave, pay debt with Lending Pool
         repayDebtPositions(_debtTokenPositions, _sender);
+
+        // 2. Transfer lending positions to recipient
+        transferLendingPositions(_aTokenPositions, _sender, _recipient);
 
         // 3. For all previously borrowed positions, reborrow them with new account with 0.09% premium
         reborrowDebtPositions(_debtTokenPositions, premiums, _recipient);
@@ -156,11 +163,8 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
         // Therefore ensure your contract has enough to repay
         // these amounts.
 
-        // Approve the LendingPool contract allowance to *pull* the owed amount
-        for (uint256 i = 0; i < assets.length; i++) {
-            uint256 amountOwing = amounts[i] + premiums[i];
-            IERC20(assets[i]).approve(address(LENDING_POOL), amountOwing);
-        }
+        // 4. Approve the LendingPool contract allowance to *pull* the owed amount
+        approveLendingPool(assets, amounts, premiums);
 
         return true;
     }
