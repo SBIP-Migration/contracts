@@ -7,7 +7,6 @@ import "./interfaces/ILendingPoolAddressesProviderV2.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { DataTypes } from "./libraries/DataTypes.sol";
 import { IDebtToken } from "./interfaces/IDebtToken.sol";
-import "forge-std/console.sol";
 
 
 contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable { 
