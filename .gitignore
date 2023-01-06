@@ -1,3 +1,4 @@
 cache/
 out/
 deployment.sh
+test.sh

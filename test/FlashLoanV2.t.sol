@@ -278,6 +278,6 @@ contract FlashLoanV2Test is Test {
 
         uint256 flashloanFee = USDC_BORROWED * 9 / 10000;
         // Rounding errors in division, with "-1"
-        assertEq(USDC_BORROWED_RECEIVER, USDC_BORROWED + flashloanFee - 1);
+        assertEq(USDC_BORROWED_RECEIVER, USDC_BORROWED + flashloanFee);
     }
 }   
