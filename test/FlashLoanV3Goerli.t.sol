@@ -4,19 +4,19 @@ pragma solidity ^0.8.1;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "forge-std/Vm.sol";
-import "src/FlashLoanV2.sol";
+import "src/FlashLoanV3.sol";
 
 import "forge-std/console.sol";
 
 import {DataTypes} from "src/libraries/DataTypes.sol";
 import {IDebtToken} from "src/interfaces/IDebtToken.sol";
-import {IProtocolDataProviderV2} from "src/interfaces/IProtocolDataProviderV2.sol";
+import {IPoolDataProvider} from "src/interfaces/IPoolDataProviderV3.sol";
 
 // Goerli chain, with real wallet data
-contract FlashLoanV2Goerli is Test {
-  FlashLoanV2 flashloan;
+contract FlashLoanV3Goerli is Test {
+  FlashLoanV3 flashloan;
 
-  address private constant AAVE_LENDING_POOL_PROVIDER =
+  address private constant AAVE_LENDING_POOL_ADDRESS_PROVIDER =
     0xc4dCB5126a3AfEd129BC3668Ea19285A9f56D15D;
   address private constant AAVE_PROTOCOL_DATA_PROVIDER =
     0x9BE876c6DC42215B00d7efe892E2691C3bc35d10;
@@ -45,11 +45,11 @@ contract FlashLoanV2Goerli is Test {
     0xf20Fc5343AA0257eCff5e4BB78F127312f899692;
   address private migrateAavePositionsAddress;
 
-  IProtocolDataProviderV2 protocolDataProvider =
-    IProtocolDataProviderV2(AAVE_PROTOCOL_DATA_PROVIDER);
+  IPoolDataProvider poolDataProvider =
+    IPoolDataProvider(AAVE_PROTOCOL_DATA_PROVIDER);
 
   function setUp() public {
-    flashloan = new FlashLoanV2(AAVE_LENDING_POOL_PROVIDER);
+    flashloan = new FlashLoanV3(AAVE_LENDING_POOL_ADDRESS_PROVIDER);
     migrateAavePositionsAddress = flashloan.getContractAddress();
     vm.label(RECEIVER, "Receiver");
   }
@@ -57,8 +57,6 @@ contract FlashLoanV2Goerli is Test {
   function test_migrateUSDCPositionWithWETHCollateral() public {
     address BORROWER = 0x68929570Ee8a4Da4Fc7634340D0d92585B2Aa313;
     vm.label(BORROWER, "Borrower");
-
-    console.log("Starting function");
 
     vm.startPrank(BORROWER);
 
@@ -69,11 +67,13 @@ contract FlashLoanV2Goerli is Test {
 
     // https://goerli.etherscan.io/address/0x927F584d4321C1dCcBf5e2902368124b02419a1E#readContract
     // Calls throw an error => (Error: execution reverted)
-    // (, , uint256 USDC_BORROWED, , , , , , ) = protocolDataProvider
+    // (, , uint256 USDC_BORROWED, , , , , , ) = poolDataProvider
     //   .getUserReserveData(USDC_ADDRESS, BORROWER);
 
-    // (uint256 WETH_LENDED, , , , , , , , ) = protocolDataProvider
-    //   .getUserReserveData(WETH_ADDRESS, BORROWER);
+    // (uint256 WETH_LENDED, , , , , , , , ) = poolDataProvider.getUserReserveData(
+    //   WETH_ADDRESS,
+    //   BORROWER
+    // );
 
     uint256 USDC_BORROWED = 25_000_000;
     uint256 WETH_LENDED = 50_000_000_000_000_000;
@@ -117,9 +117,9 @@ contract FlashLoanV2Goerli is Test {
     );
 
     // Receiver related
-    (, , uint256 usdcReceiverVariableDebt, , , , , , ) = protocolDataProvider
+    (, , uint256 usdcReceiverVariableDebt, , , , , , ) = poolDataProvider
       .getUserReserveData(USDC_ADDRESS, RECEIVER);
-    (uint256 wethReceiverATokenBalance, , , , , , , , ) = protocolDataProvider
+    (uint256 wethReceiverATokenBalance, , , , , , , , ) = poolDataProvider
       .getUserReserveData(WETH_ADDRESS, RECEIVER);
 
     // Lending positions transferred to RECEIVER account

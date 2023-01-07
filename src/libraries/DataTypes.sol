@@ -5,7 +5,7 @@ pragma solidity ^0.8.1;
  * @dev This is the Aave V2 DataTypes library.
  */
 library DataTypes {
-    // refer to the whitepaper, section 1.1 basic concepts for a formal description of these properties.
+  // refer to the whitepaper, section 1.1 basic concepts for a formal description of these properties.
   struct ReserveData {
     //stores the reserve configuration
     ReserveConfigurationMap configuration;
@@ -30,7 +30,7 @@ library DataTypes {
     uint8 id;
   }
 
-   struct ReserveConfigurationMap {
+  struct ReserveConfigurationMap {
     //bit 0-15: LTV
     //bit 16-31: Liq. threshold
     //bit 32-47: Liq. bonus
@@ -61,6 +61,56 @@ library DataTypes {
     uint256 variableDebtAmount;
     address tokenAddress;
   }
-  
-  enum InterestRateMode {NONE, STABLE, VARIABLE}
+
+  struct EModeCategory {
+    // each eMode category has a custom ltv and liquidation threshold
+    uint16 ltv;
+    uint16 liquidationThreshold;
+    uint16 liquidationBonus;
+    // each eMode category may or may not have a custom oracle to override the individual assets price oracles
+    address priceSource;
+    string label;
+  }
+
+  struct FlashloanParams {
+    address receiverAddress;
+    address[] assets;
+    uint256[] amounts;
+    uint256[] interestRateModes;
+    address onBehalfOf;
+    bytes params;
+    uint16 referralCode;
+    uint256 flashLoanPremiumToProtocol;
+    uint256 flashLoanPremiumTotal;
+    uint256 maxStableRateBorrowSizePercent;
+    uint256 reservesCount;
+    address addressesProvider;
+    uint8 userEModeCategory;
+    bool isAuthorizedFlashBorrower;
+  }
+
+  struct FlashloanSimpleParams {
+    address receiverAddress;
+    address asset;
+    uint256 amount;
+    bytes params;
+    uint16 referralCode;
+    uint256 flashLoanPremiumToProtocol;
+    uint256 flashLoanPremiumTotal;
+  }
+
+  struct FlashLoanRepaymentParams {
+    uint256 amount;
+    uint256 totalPremium;
+    uint256 flashLoanPremiumToProtocol;
+    address asset;
+    address receiverAddress;
+    uint16 referralCode;
+  }
+
+  enum InterestRateMode {
+    NONE,
+    STABLE,
+    VARIABLE
+  }
 }
