@@ -23,7 +23,7 @@ contract FlashLoanV2Goerli is Test {
 
   // Borrowed
   address private constant USDC_ADDRESS =
-    0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    0xA2025B15a1757311bfD68cb14eaeFCc237AF5b43;
   address private constant A_USDC_ADDRESS =
     0x1Ee669290939f8a8864497Af3BC83728715265FF;
   address private constant STABLE_DEBT_USDC =

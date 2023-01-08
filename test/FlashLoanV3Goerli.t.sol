@@ -23,7 +23,7 @@ contract FlashLoanV3Goerli is Test {
 
   // Borrowed
   address private constant USDC_ADDRESS =
-    0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    0xA2025B15a1757311bfD68cb14eaeFCc237AF5b43;
   address private constant A_USDC_ADDRESS =
     0x1Ee669290939f8a8864497Af3BC83728715265FF;
   address private constant STABLE_DEBT_USDC =
@@ -65,18 +65,13 @@ contract FlashLoanV3Goerli is Test {
     DataTypes.aTokenPosition[]
       memory aTokenPositions = new DataTypes.aTokenPosition[](1);
 
-    // https://goerli.etherscan.io/address/0x927F584d4321C1dCcBf5e2902368124b02419a1E#readContract
-    // Calls throw an error => (Error: execution reverted)
-    // (, , uint256 USDC_BORROWED, , , , , , ) = poolDataProvider
-    //   .getUserReserveData(USDC_ADDRESS, BORROWER);
+    (, , uint256 USDC_BORROWED, , , , , , ) = poolDataProvider
+      .getUserReserveData(USDC_ADDRESS, BORROWER);
 
-    // (uint256 WETH_LENDED, , , , , , , , ) = poolDataProvider.getUserReserveData(
-    //   WETH_ADDRESS,
-    //   BORROWER
-    // );
-
-    uint256 USDC_BORROWED = 25_000_000;
-    uint256 WETH_LENDED = 50_000_000_000_000_000;
+    (uint256 WETH_LENDED, , , , , , , , ) = poolDataProvider.getUserReserveData(
+      WETH_ADDRESS,
+      BORROWER
+    );
 
     // USDC debt
     debtTokenPositions[0] = DataTypes.DebtTokenPosition({
@@ -125,8 +120,8 @@ contract FlashLoanV3Goerli is Test {
     // Lending positions transferred to RECEIVER account
     assertEq(WETH_LENDED, wethReceiverATokenBalance);
 
-    // 0.09% = 9 / 10000
-    uint256 flashloanFeeUsdc = (USDC_BORROWED * 9) / 10000;
+    // On Goerli V3 -> 0.05% = 5 / 10000
+    uint256 flashloanFeeUsdc = (USDC_BORROWED * 5) / 10000;
     assertEq(usdcReceiverVariableDebt, USDC_BORROWED + flashloanFeeUsdc);
   }
 }

@@ -8,8 +8,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {DataTypes} from "./libraries/DataTypes.sol";
 import {IDebtToken} from "./interfaces/IDebtToken.sol";
 
-import "forge-std/console.sol";
-
 contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable {
   constructor(address _addressProvider)
     FlashLoanReceiverBaseV3(IPoolAddressesProvider(_addressProvider))
@@ -204,8 +202,6 @@ contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable {
     for (uint256 i = 0; i < assets.length; i++) {
       modes[i] = 0;
     }
-
-    console.log(0);
 
     POOL.flashLoan(
       receiverAddress,
