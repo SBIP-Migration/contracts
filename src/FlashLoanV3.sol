@@ -158,22 +158,14 @@ contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable {
         )
       );
 
-    console.log(1);
-
     // 1. For all borrowed positions in Aave, pay debt with Lending Pool
     repayDebtPositions(_debtTokenPositions, _sender);
-
-    console.log(2);
 
     // 2. Transfer lending positions to recipient
     transferLendingPositions(_aTokenPositions, _sender, _recipient);
 
-    console.log(3);
-
     // 3. For all previously borrowed positions, reborrow them with new account with 0.09% premium
     reborrowDebtPositions(_debtTokenPositions, premiums, _recipient);
-
-    console.log(4);
 
     // At the end of your logic above, this contract owes
     // the flashloaned amounts + premiums.
