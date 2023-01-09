@@ -10,12 +10,15 @@
 Numerous Steps required to execute manual transfer:
 
 i) Debt from sender wallet needs to be payed back in order for deposited collateral to be retrieved
+
 <img width="635" alt="Screenshot 2023-01-09 at 9 22 40 PM" src="https://user-images.githubusercontent.com/14165832/211318046-e0ea331a-1cd2-4b02-8bc7-22557b895ed3.png">
 
 ii) Deposited collateral needs to be retrieved
+
 <img width="639" alt="Screenshot 2023-01-09 at 9 22 33 PM" src="https://user-images.githubusercontent.com/14165832/211318293-bf89578c-7384-4c73-a9ac-a9cc5b2aa149.png">
 
 iii) Sometimes users will borrow from recipient wallet first to pay back Step (1). Users risk liquidation if price moves drastically against them during the manual transfer process.
+
 <img width="211" alt="Screenshot 2023-01-09 at 9 29 32 PM" src="https://user-images.githubusercontent.com/14165832/211319386-ba197a82-4495-4d11-bb88-5fcbe1799e2e.png">
 
 **2) A more serious problem when mitigating a hack (Time sensitive)
@@ -27,6 +30,7 @@ This tool is meant to make the transfer of lending and borrowed assets much smoo
 With a click of a button, users can migrate their entire positions on Aave (including debts) without having the funds to repay their debt at that moment.
 
 The smart contract uses Aave flashloan to help out transfer their positions by injecting external liquidity.
+
 <img width="597" alt="Screenshot 2023-01-09 at 9 47 40 PM" src="https://user-images.githubusercontent.com/14165832/211322848-4784c737-6e67-4245-b641-f5b490e7ac85.png">
 
 
