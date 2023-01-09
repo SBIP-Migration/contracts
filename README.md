@@ -1,39 +1,38 @@
-# <h1 align="center"> Forge Template </h1>
+# <h1 align="center"> Aave Migration Tool </h1>
 
-**Template repository for getting started quickly with Foundry projects**
+**Migrate your lending & borrowing positions on Aave to another wallet**
 
-![Github Actions](https://github.com/foundry-rs/forge-template/workflows/CI/badge.svg)
 
-## Getting Started
+## Motivation
+The risk of hacks in the crypto space is pretty high, especially to users who are active in the space, who use various DeFi protocols such as Aave.
 
-Click "Use this template" on [GitHub](https://github.com/foundry-rs/forge-template) to create a new repository with this repo as the initial state.
+When a user's wallet gets hacked, depending on the hacker, they may have a very brief period of time to migrate their funds to their new wallet.
 
-Or, if your repo already exists, run:
-```sh
-forge init
-forge build
-forge test
-```
+This tool is meant to make that flow much smoother and simpler, with a click of a button, users can migrate their entire positions on Aave (including debts) without having the funds to repay their debt at that moment.
+## What is this?
+This is a tool to help users who lend / borrow on Aave, to migrate their positions in their current wallet to another wallet that they own.
 
-## Writing your first test
+The smart contract uses Aave flashloan to help out transfer their positions by injecting external liquidity.
+## Deployments
 
-All you need is to `import forge-std/Test.sol` and then inherit it from your test contract. Forge-std's Test contract comes with a pre-instatiated [cheatcodes environment](https://book.getfoundry.sh/cheatcodes/), the `vm`. It also has support for [ds-test](https://book.getfoundry.sh/reference/ds-test.html)-style logs and assertions. Finally, it supports Hardhat's [console.log](https://github.com/brockelmore/forge-std/blob/master/src/console.sol). The logging functionalities require `-vvvv`.
+Deployed on Goerli 
+- Aave V3: https://goerli.etherscan.io/address/0x5b5c27bda785970d5207fb5a9ed0dcdd19bd018e
+- Aave V2: https://goerli.etherscan.io/address/0xb139b3508d637cce06a160666348ebaf24b77fd7#code
 
-```solidity
-pragma solidity 0.8.10;
+Website Demo: https://client-five-psi.vercel.app/
 
-import "forge-std/Test.sol";
+## How does it work?
 
-contract ContractTest is Test {
-    function testExample() public {
-        vm.roll(100);
-        console.log(1);
-        emit log("hi");
-        assertTrue(true);
-    }
-}
-```
+It is a 5 step process:
+1. Take flashloan from Aave Lending Pool
+2. Use flashloan funds to **repay** all existing debts in original wallet
+3. Transfer lending positions (aTokens) from the original wallet to destination wallet
+4. Reborrow previous debt positions in destination wallet
+5. Repay flashloan with an additional flashloan fee
 
-## Development
-
-This project uses [Foundry](https://getfoundry.sh). See the [book](https://book.getfoundry.sh/getting-started/installation.html) for instructions on how to install and use Foundry.
+## Fees
+The cost incurred for the users to migrate their positions are as follows:
+- `approve` each of the lending positions to the contract
+- `approveDelegation` each of the previous debts in the "original" wallet, to allow the contract to borrow on behalf of the "destination" wallet
+- Transaction cost for the smart contract call to migrate their positions
+- Flash loan fee that is determined by Aave DAO when we borrowed the flash loan
