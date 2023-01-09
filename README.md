@@ -1,11 +1,10 @@
 # <h1 align="center"> Aave Migration Tool </h1>
 
-## Omnitransfer
 **Migrate your lending & borrowing positions on Aave to another wallet**
 
 ## Motivation
 
-**1) Bad user experience when doing asset migration manually from 1 wallet address to another
+**1) Bad user experience when doing asset migration manually from 1 wallet address to another**
 
 Numerous Steps required to execute manual transfer:
 
@@ -21,7 +20,7 @@ iii) Sometimes users will borrow from recipient wallet first to pay back Step (1
 
 <img width="211" alt="Screenshot 2023-01-09 at 9 29 32 PM" src="https://user-images.githubusercontent.com/14165832/211319386-ba197a82-4495-4d11-bb88-5fcbe1799e2e.png">
 
-**2) A more serious problem when mitigating a hack (Time sensitive)
+**2) A more serious problem when mitigating a hack (Time sensitive)**
 
 Assuming a user's wallet gets hacked, the user will be competing against the hacker and only has a very brief period of time to migrate their funds to their new wallet. Speed of asset transfer is critical to saving victim's funds.
 
@@ -59,5 +58,5 @@ The cost incurred for the users to migrate their positions are as follows:
 - Flash loan fee that is determined by Aave DAO when we borrowed the flash loan
 
 ## Stretch Goals
-**1) We could propose this tool for AAVE to enhance user experience. Allow this function for users to send to their whitelisted addresses only ( Mitigate hacks and increase user satisfaction)
-**2) To offer these services to other lending and borrowing protocols like Compound 
+1) We could propose this tool for AAVE to enhance user experience. Allow this function for users to send to their whitelisted addresses only ( Mitigate hacks and increase user satisfaction)
+2) To offer these services to other lending and borrowing protocols like Compound 
