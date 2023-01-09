@@ -10,11 +10,11 @@ Numerous Steps required to execute manual transfer:
 
 i) Debt from sender wallet needs to be payed back in order for deposited collateral to be retrieved
 
-<img width="635" alt="Screenshot 2023-01-09 at 9 22 40 PM" src="https://user-images.githubusercontent.com/14165832/211318046-e0ea331a-1cd2-4b02-8bc7-22557b895ed3.png">
+<img width="639" alt="Screenshot 2023-01-09 at 9 22 33 PM" src="https://user-images.githubusercontent.com/14165832/211318293-bf89578c-7384-4c73-a9ac-a9cc5b2aa149.png">
 
 ii) Deposited collateral needs to be retrieved
 
-<img width="639" alt="Screenshot 2023-01-09 at 9 22 33 PM" src="https://user-images.githubusercontent.com/14165832/211318293-bf89578c-7384-4c73-a9ac-a9cc5b2aa149.png">
+<img width="635" alt="Screenshot 2023-01-09 at 9 22 40 PM" src="https://user-images.githubusercontent.com/14165832/211318046-e0ea331a-1cd2-4b02-8bc7-22557b895ed3.png">
 
 iii) Sometimes users will borrow from recipient wallet first to pay back Step (1). Users risk liquidation if price moves drastically against them during the manual transfer process.
 
