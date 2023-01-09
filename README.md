@@ -52,6 +52,10 @@ It is a 5 step process:
 4. Reborrow previous debt positions in destination wallet
 5. Repay flashloan with an additional flashloan fee
 
+## Architecture
+![image](https://user-images.githubusercontent.com/15076300/211331567-738c8b46-1e55-48bb-9467-1b1787004458.png)
+
+
 ## Fees
 The cost incurred for the users to migrate their positions are as follows:
 - `approve` each of the lending positions to the contract
