@@ -41,7 +41,11 @@ Deployed on Goerli
 - Aave V3: https://goerli.etherscan.io/address/0x5b5c27bda785970d5207fb5a9ed0dcdd19bd018e
 - Aave V2: https://goerli.etherscan.io/address/0xb139b3508d637cce06a160666348ebaf24b77fd7#code
 
+Frontend Repo:
+https://github.com/SBIP-Migration/client
+
 Website Demo: https://client-five-psi.vercel.app/
+Video Demo of OmniTransfer App: https://drive.google.com/file/d/1WIFqMQwiWuUlb_ROBJCHrQ1tS90UnOnC/view?usp=share_link
 
 ## How does it work?
 
