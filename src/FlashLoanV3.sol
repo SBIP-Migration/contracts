@@ -25,12 +25,17 @@ contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable {
     address sender,
     address recipient
   ) internal {
+    require(
+      msg.sender == address(POOL),
+      "Only Aave Pool can call this function"
+    );
     for (uint256 i = 0; i < aTokenPositions.length; i++) {
-      IERC20(aTokenPositions[i].aTokenAddress).transferFrom(
+      bool success = IERC20(aTokenPositions[i].aTokenAddress).transferFrom(
         sender,
         recipient,
         aTokenPositions[i].amount
       );
+      require(success, "Transfer of aToken failed");
     }
   }
 
@@ -94,7 +99,7 @@ contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable {
       }
       if (debtPosition.variableDebtAmount != 0) {
         uint256 borrowAmount = debtPosition.variableDebtAmount;
-        if (isPremiumIncluded == false) {
+        if (!isPremiumIncluded) {
           borrowAmount += flPremium;
         }
 

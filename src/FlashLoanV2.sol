@@ -25,6 +25,10 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
     address sender,
     address recipient
   ) internal {
+    require(
+      msg.sender == address(LENDING_POOL),
+      "Only Aave LendingPool can call this function"
+    );
     for (uint256 i = 0; i < aTokenPositions.length; i++) {
       IERC20(aTokenPositions[i].aTokenAddress).transferFrom(
         sender,
@@ -94,7 +98,7 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
       }
       if (debtPosition.variableDebtAmount != 0) {
         uint256 borrowAmount = debtPosition.variableDebtAmount;
-        if (isPremiumIncluded == false) {
+        if (!isPremiumIncluded) {
           borrowAmount += flPremium;
         }
 
