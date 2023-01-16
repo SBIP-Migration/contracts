@@ -219,6 +219,16 @@ contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable {
     DataTypes.DebtTokenPosition[] memory _debtTokenPositions,
     DataTypes.aTokenPosition[] memory _aTokenPositions
   ) external {
+    require(_recipientAddress != address(0), "Invalid recipient address");
+    require(
+      msg.sender != _recipientAddress,
+      "Cannot transfer positions to self"
+    );
+    require(
+      _debtTokenPositions.length > 0 || _aTokenPositions.length > 0,
+      "No debt OR supply positions to migrate"
+    );
+
     uint256 numDebtTokenPositions = _debtTokenPositions.length;
 
     // Calculate assets
