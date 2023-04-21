@@ -5,10 +5,11 @@ import "./aave/FlashLoanReceiverBaseV2.sol";
 import "./interfaces/ILendingPoolV2.sol";
 import "./interfaces/ILendingPoolAddressesProviderV2.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {DataTypes} from "./libraries/DataTypes.sol";
 import {IDebtToken} from "./interfaces/IDebtToken.sol";
 
-contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
+contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable, ReentrancyGuard {
   constructor(address _addressProvider)
     FlashLoanReceiverBaseV2(_addressProvider)
   {}
@@ -141,7 +142,7 @@ contract FlashLoanV2 is FlashLoanReceiverBaseV2, Withdrawable {
     uint256[] calldata premiums,
     address initiator,
     bytes calldata params
-  ) external override returns (bool) {
+  ) external override nonReentrant returns (bool) {
     //
     // This contract now has the funds requested.
     // Your logic goes here.

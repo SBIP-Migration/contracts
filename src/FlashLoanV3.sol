@@ -5,10 +5,11 @@ import "./aave/FlashLoanReceiverBaseV3.sol";
 import "./interfaces/IPoolV3.sol";
 import "./interfaces/IPoolAddressesProviderV3.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {DataTypes} from "./libraries/DataTypes.sol";
 import {IDebtToken} from "./interfaces/IDebtToken.sol";
 
-contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable {
+contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable, ReentrancyGuard {
   constructor(address _addressProvider)
     FlashLoanReceiverBaseV3(IPoolAddressesProvider(_addressProvider))
   {}
@@ -142,11 +143,12 @@ contract FlashLoanV3 is FlashLoanReceiverBaseV3, Withdrawable {
     uint256[] calldata premiums,
     address initiator,
     bytes calldata params
-  ) external override returns (bool) {
+  ) external override nonReentrant returns (bool) {
     //
     // This contract now has the funds requested.
     // Your logic goes here.
     //
+    require(assets.length == amounts.length && amounts.length == premiums.length, "assets, amounts & premiums need to have the same length");
 
     (
       address _sender,
