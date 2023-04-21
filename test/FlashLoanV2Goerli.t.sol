@@ -19,7 +19,7 @@ contract FlashLoanV2Goerli is Test {
   address private constant AAVE_LENDING_POOL_PROVIDER =
     0xc4dCB5126a3AfEd129BC3668Ea19285A9f56D15D;
   address private constant AAVE_PROTOCOL_DATA_PROVIDER =
-    0x9BE876c6DC42215B00d7efe892E2691C3bc35d10;
+    0x927F584d4321C1dCcBf5e2902368124b02419a1E;
 
   // Borrowed
   address private constant USDC_ADDRESS =

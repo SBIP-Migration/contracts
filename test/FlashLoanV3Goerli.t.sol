@@ -65,18 +65,26 @@ contract FlashLoanV3Goerli is Test {
     DataTypes.aTokenPosition[]
       memory aTokenPositions = new DataTypes.aTokenPosition[](1);
 
-    (, , uint256 USDC_BORROWED, , , , , , ) = poolDataProvider
+    // Initial Borrower balances
+    (, , uint256 initialUSDCBorrowerVariableDebt, , , , , , ) = poolDataProvider
       .getUserReserveData(USDC_ADDRESS, BORROWER);
 
-    (uint256 WETH_LENDED, , , , , , , , ) = poolDataProvider.getUserReserveData(
+    (uint256 initialWETHBorrowerATokenBalance, , , , , , , , ) = poolDataProvider.getUserReserveData(
       WETH_ADDRESS,
       BORROWER
     );
+    
+    // Initial Receiver balances
+    (uint256 initialWETHReceiverATokenBalance, , , , , , , , ) = poolDataProvider
+      .getUserReserveData(WETH_ADDRESS, RECEIVER);
+
+    (, , uint256 initialUSDCReceiverVariableDebt, , , , , , ) = poolDataProvider
+      .getUserReserveData(USDC_ADDRESS, RECEIVER);
 
     // USDC debt
     debtTokenPositions[0] = DataTypes.DebtTokenPosition({
       stableDebtAmount: 0,
-      variableDebtAmount: USDC_BORROWED,
+      variableDebtAmount: initialUSDCBorrowerVariableDebt,
       tokenAddress: USDC_ADDRESS
     });
 
@@ -84,7 +92,7 @@ contract FlashLoanV3Goerli is Test {
     aTokenPositions[0] = DataTypes.aTokenPosition({
       tokenAddress: WETH_ADDRESS,
       aTokenAddress: A_WETH_ADDRESS,
-      amount: WETH_LENDED
+      amount: initialWETHBorrowerATokenBalance
     });
 
     // Pre-approve aToken positions transfer on "sender" wallet
@@ -111,17 +119,23 @@ contract FlashLoanV3Goerli is Test {
       aTokenPositions
     );
 
-    // Receiver related
+    // Final "Borrower" balances
+    (, , uint256 usdcBorrowerVariableDebt, , , , , , ) = poolDataProvider
+      .getUserReserveData(USDC_ADDRESS, BORROWER);
+    (uint256 wethBorrowerATokenBalance, , , , , , , , ) = poolDataProvider
+      .getUserReserveData(WETH_ADDRESS, BORROWER);
+
+    // Final "Receiver" balances
     (, , uint256 usdcReceiverVariableDebt, , , , , , ) = poolDataProvider
       .getUserReserveData(USDC_ADDRESS, RECEIVER);
     (uint256 wethReceiverATokenBalance, , , , , , , , ) = poolDataProvider
       .getUserReserveData(WETH_ADDRESS, RECEIVER);
 
     // Lending positions transferred to RECEIVER account
-    assertEq(WETH_LENDED, wethReceiverATokenBalance);
+    assertEq(initialWETHBorrowerATokenBalance - wethBorrowerATokenBalance, wethReceiverATokenBalance - initialWETHReceiverATokenBalance);
 
     // On Goerli V3 -> 0.05% = 5 / 10000
-    uint256 flashloanFeeUsdc = (USDC_BORROWED * 5) / 10000;
-    assertEq(usdcReceiverVariableDebt, USDC_BORROWED + flashloanFeeUsdc);
+    uint256 flashloanFeeUsdc = (initialUSDCBorrowerVariableDebt * 5) / 10000;
+    assertEq(usdcReceiverVariableDebt - initialUSDCReceiverVariableDebt, initialUSDCBorrowerVariableDebt + flashloanFeeUsdc);
   }
 }
